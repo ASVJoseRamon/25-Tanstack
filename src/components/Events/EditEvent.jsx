@@ -19,10 +19,20 @@ export default function EditEvent() {
     onMutate: async (data) => {
       const newEvent = data.event;
       await queryClient.cancelQueries({queryKey: ['events', params.id]});
+      const previousEvent = queryClient.getQueryData(['events', params.id]);
+
       queryClient.setQueryData(['events', params.id], newEvent);
+      
+      return { previousEvent }
+    },
+    onError: (error, data, context) => {
+      queryClient.setQueryData(['events', params.id], context.previousEvent);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(['events', params.id]);
     }
 
-  })
+  });
 
   function handleSubmit(formData) {
     mutate({ id: params.id, event: formData });
